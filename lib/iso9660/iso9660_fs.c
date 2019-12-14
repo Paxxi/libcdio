@@ -318,7 +318,7 @@ static inline bool
 get_member_id(iso9660_t *p_iso, cdio_utf8_t **p_psz_member_id,
               char* pvd_member, char* svd_member, size_t max_size)
 {
-  int j;
+  size_t j;
   bool strip;
 
   if (!p_iso) {
@@ -593,7 +593,7 @@ iso9660_ifs_fuzzy_read_superblock (iso9660_t *p_iso,
 
 	if (pvd) {
 	  /* Yay! Found something */
-	  p_iso->i_fuzzy_offset = (pvd - frame - 1) -
+	  p_iso->i_fuzzy_offset = (int)(pvd - frame - 1) -
 	    ((ISO_PVD_SECTOR-lsn)*p_iso->i_framesize) ;
 	  /* But is it *really* a PVD? */
 	  if ( iso9660_ifs_read_pvd_loglevel(p_iso, &(p_iso->pvd),
@@ -712,16 +712,16 @@ iso9660_seek_read_framesize (const iso9660_t *p_iso, void *ptr,
 			     lsn_t start, long int size,
 			     uint16_t i_framesize)
 {
-  long int ret;
+  ssize_t ret;
   int64_t i_byte_offset;
 
   if (!p_iso) return 0;
   i_byte_offset = (start * (int64_t)(p_iso->i_framesize))
     + p_iso->i_fuzzy_offset + p_iso->i_datastart;
 
-  ret = cdio_stream_seek (p_iso->stream, i_byte_offset, SEEK_SET);
+  ret = cdio_stream_seek (p_iso->stream, (off_t)i_byte_offset, SEEK_SET);
   if (ret!=0) return 0;
-  return cdio_stream_read (p_iso->stream, ptr, i_framesize, size);
+  return (long int)cdio_stream_read (p_iso->stream, ptr, i_framesize, size);
 }
 
 /*!
@@ -1016,7 +1016,7 @@ _fs_stat_traverse (const CdIo_t *p_cdio, const iso9660_stat_t *_root,
 
   if (!splitpath[0])
     {
-      unsigned int len=sizeof(iso9660_stat_t) + strlen(_root->filename)+1;
+      size_t len=sizeof(iso9660_stat_t) + strlen(_root->filename)+1;
       p_stat = calloc(1, len);
       cdio_assert (p_stat != NULL);
       memcpy(p_stat, _root, len);
@@ -1060,7 +1060,7 @@ _fs_stat_traverse (const CdIo_t *p_cdio, const iso9660_stat_t *_root,
       if ( 0 != cmp && 0 == p_env->u_joliet_level
 	   && yep != p_iso9660_stat->rr.b3_rock ) {
 	char *trans_fname = NULL;
-	unsigned int i_trans_fname=strlen(p_iso9660_stat->filename);
+	size_t i_trans_fname=strlen(p_iso9660_stat->filename);
 
 	if (i_trans_fname) {
 	  trans_fname = calloc(1, i_trans_fname+1);
@@ -1108,7 +1108,7 @@ _fs_iso_stat_traverse (iso9660_t *p_iso, const iso9660_stat_t *_root,
   if (!splitpath[0])
     {
       iso9660_stat_t *p_stat;
-      unsigned int len=sizeof(iso9660_stat_t) + strlen(_root->filename)+1;
+      size_t len=sizeof(iso9660_stat_t) + strlen(_root->filename)+1;
       p_stat = calloc(1, len);
       cdio_assert (p_stat != NULL);
       memcpy(p_stat, _root, len);
@@ -1160,7 +1160,7 @@ _fs_iso_stat_traverse (iso9660_t *p_iso, const iso9660_stat_t *_root,
       if ( 0 != cmp && 0 == p_iso->u_joliet_level
 	   && yep != p_stat->rr.b3_rock ) {
 	char *trans_fname = NULL;
-	unsigned int i_trans_fname=strlen(p_stat->filename);
+	size_t i_trans_fname=strlen(p_stat->filename);
 
 	if (i_trans_fname) {
 	  trans_fname = calloc(1, i_trans_fname+1);
@@ -1529,7 +1529,7 @@ find_lsn_recurse (void *p_image, iso9660_readdir_t iso9660_readdir,
     {
       iso9660_stat_t *statbuf = _cdio_list_node_data (entnode);
       const char *psz_filename  = (char *) statbuf->filename;
-      unsigned int len = strlen(psz_path) + strlen(psz_filename)+2;
+      size_t len = strlen(psz_path) + strlen(psz_filename)+2;
 
       if (*ppsz_full_filename != NULL) free(*ppsz_full_filename);
       *ppsz_full_filename = calloc(1, len);
@@ -1543,7 +1543,7 @@ find_lsn_recurse (void *p_image, iso9660_readdir_t iso9660_readdir,
       }
 
       if (statbuf->lsn == lsn) {
-	const unsigned int len2 = sizeof(iso9660_stat_t)+strlen(statbuf->filename)+1;
+	const size_t len2 = sizeof(iso9660_stat_t)+strlen(statbuf->filename)+1;
 	iso9660_stat_t *ret_stat = calloc(1, len2);
 	if (!ret_stat)
 	  {

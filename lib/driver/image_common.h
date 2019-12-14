@@ -66,7 +66,7 @@ typedef struct {
  */
 void  _free_image (void *p_user_data);
 
-int _eject_media_image(void *p_user_data);
+driver_return_code_t _eject_media_image(void *p_user_data);
 
 /*!
   Return the value associated with the key "arg".

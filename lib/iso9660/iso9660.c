@@ -137,7 +137,7 @@ static char *
 strip_trail (const char str[], size_t n)
 {
   static char buf[1025];
-  int j;
+  size_t j;
 
   cdio_assert (n < 1024);
 
@@ -373,7 +373,7 @@ iso9660_set_ltime_with_timezone(const struct tm *p_tm,
 
   if (!p_tm) return;
 
-#pragma GCC diagnostic ignored "-Wformat-truncation"
+//#pragma GCC diagnostic ignored "-Wformat-truncation"
   snprintf(_pvd_date, 17,
            "%4.4d%2.2d%2.2d" "%2.2d%2.2d%2.2d" "%2.2d",
            p_tm->tm_year + 1900, p_tm->tm_mon + 1, p_tm->tm_mday,
@@ -449,8 +449,8 @@ int
 iso9660_name_translate_ext(const char *psz_oldname, char *psz_newname,
                            uint8_t u_joliet_level)
 {
-  int len = strlen(psz_oldname);
-  int i;
+  size_t len = strlen(psz_oldname);
+  size_t i;
 
   if (0 == len) return 0;
   for (i = 0; i < len; i++) {
@@ -477,7 +477,7 @@ iso9660_name_translate_ext(const char *psz_oldname, char *psz_newname,
     psz_newname[i] = c;
   }
   psz_newname[i] = '\0';
-  return i;
+  return (int)i;
 }
 
 /*!
@@ -562,9 +562,9 @@ iso9660_strncpy_pad(char dst[], const char src[], size_t len,
 bool
 iso9660_is_dchar (int c)
 {
-  if (!IN (c, 0x30, 0x5f)
-      || IN (c, 0x3a, 0x40)
-      || IN (c, 0x5b, 0x5e))
+  if (!BETWEEN (c, 0x30, 0x5f)
+      || BETWEEN (c, 0x3a, 0x40)
+      || BETWEEN (c, 0x5b, 0x5e))
     return false;
 
   return true;
@@ -579,10 +579,10 @@ iso9660_is_dchar (int c)
 bool
 iso9660_is_achar (int c)
 {
-  if (!IN (c, 0x20, 0x5f)
-      || IN (c, 0x23, 0x24)
+  if (!BETWEEN (c, 0x20, 0x5f)
+      || BETWEEN (c, 0x23, 0x24)
       || c == 0x40
-      || IN (c, 0x5b, 0x5e))
+      || BETWEEN (c, 0x5b, 0x5e))
     return false;
 
   return true;
@@ -718,7 +718,7 @@ iso9660_dir_add_entry_su(void *dir,
   uint8_t *dir8 = dir;
   unsigned int offset = 0;
   uint32_t dsize = from_733(idr->size);
-  int length, su_offset;
+  size_t length, su_offset;
   struct tm temp_tm;
   cdio_assert (sizeof(iso9660_dir_t) == 33);
 
@@ -733,10 +733,10 @@ iso9660_dir_add_entry_su(void *dir,
 
   length = sizeof(iso9660_dir_t);
   length += strlen(filename);
-  length = _cdio_ceil2block (length, 2); /* pad to word boundary */
+  length = _cdio_ceil2block ((unsigned int)length, 2); /* pad to word boundary */
   su_offset = length;
   length += su_size;
-  length = _cdio_ceil2block (length, 2); /* pad to word boundary again */
+  length = _cdio_ceil2block ((unsigned int)length, 2); /* pad to word boundary again */
 
   /* find the last entry's end */
   {
@@ -761,8 +761,8 @@ iso9660_dir_add_entry_su(void *dir,
   }
 
   /* be sure we don't cross sectors boundaries */
-  offset = _cdio_ofs_add (offset, length, ISO_BLOCKSIZE);
-  offset -= length;
+  offset = _cdio_ofs_add (offset, (unsigned int)length, ISO_BLOCKSIZE);
+  offset -= (unsigned int)length;
 
   cdio_assert (offset + length <= dsize);
 
@@ -772,7 +772,7 @@ iso9660_dir_add_entry_su(void *dir,
 
   memset(idr, 0, length);
 
-  idr->length = to_711(length);
+  idr->length = to_711((uint8_t)length);
   idr->extent = to_733(extent);
   idr->size = to_733(size);
 
@@ -783,8 +783,8 @@ iso9660_dir_add_entry_su(void *dir,
 
   idr->volume_sequence_number = to_723(1);
 
-  idr->filename.len = to_711(strlen(filename)
-                             ? strlen(filename) : 1); /* working hack! */
+  idr->filename.len = to_711((uint8_t)strlen(filename)
+                             ? (uint8_t)strlen(filename) : 1); /* working hack! */
 
   memcpy(&idr->filename.str[1], filename, from_711(idr->filename.len));
   if (su_size > 0 && su_data)
@@ -940,7 +940,7 @@ iso9660_pathtable_l_add_entry (void *pt,
 
   memset (ipt, 0, sizeof (iso_path_table_t) + name_len); /* paranoia */
 
-  ipt->name_len = to_711 (name_len);
+  ipt->name_len = to_711 ((uint8_t)name_len);
   ipt->extent = to_731 (extent);
   ipt->parent = to_721 (parent);
   memcpy (ipt->name, name, name_len);
@@ -975,7 +975,7 @@ iso9660_pathtable_m_add_entry (void *pt,
 
   memset(ipt, 0, sizeof (iso_path_table_t) + name_len); /* paranoia */
 
-  ipt->name_len = to_711 (name_len);
+  ipt->name_len = to_711 ((uint8_t)name_len);
   ipt->extent = to_732 (extent);
   ipt->parent = to_722 (parent);
   memcpy (ipt->name, name, name_len);

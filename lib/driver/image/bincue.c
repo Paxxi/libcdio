@@ -358,7 +358,7 @@ parse_cuefile (_img_private_t *cd, const char *psz_cue_name)
     if(NULL != (psz_field = strtok (NULL, "\"\t\n\r"))) {
       if (cd) {
         uint8_t cdt_data[CDTEXT_LEN_BINARY_MAX+4];
-        int size;
+        ssize_t size;
         CdioDataSource_t *source;
         char *dirname = cdio_dirname(psz_cue_name);
         char *psz_filename = cdio_abspath(dirname, psz_field);
@@ -880,7 +880,7 @@ _read_audio_sectors_bincue (void *p_user_data, void *data, lsn_t lsn,
                           unsigned int nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int ret;
+  ssize_t ret;
 
   ret = cdio_stream_seek (p_env->gen.data_source,
             lsn * CDIO_CD_FRAMESIZE_RAW, SEEK_SET);
@@ -902,7 +902,7 @@ _read_mode1_sector_bincue (void *p_user_data, void *data, lsn_t lsn,
                            bool b_form2)
 {
   _img_private_t *p_env = p_user_data;
-  int ret;
+  ssize_t ret;
   char buf[CDIO_CD_FRAMESIZE_RAW] = { 0, };
   int blocksize = CDIO_CD_FRAMESIZE_RAW;
 
@@ -929,7 +929,7 @@ _read_mode1_sectors_bincue (void *p_user_data, void *data, lsn_t lsn,
                             bool b_form2, unsigned int nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 
@@ -951,7 +951,7 @@ _read_mode2_sector_bincue (void *p_user_data, void *data, lsn_t lsn,
                          bool b_form2)
 {
   _img_private_t *p_env = p_user_data;
-  int ret;
+  ssize_t ret;
   char buf[CDIO_CD_FRAMESIZE_RAW] = { 0, };
 
   /* NOTE: The logic below seems a bit wrong and convoluted
@@ -989,7 +989,7 @@ _read_mode2_sectors_bincue (void *p_user_data, void *data, lsn_t lsn,
                             bool b_form2, unsigned int nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 
@@ -1172,7 +1172,7 @@ cdio_is_cuefile(const char *psz_cue_name)
    */
 
   psz_bin_name=strdup(psz_cue_name);
-  i=strlen(psz_bin_name)-strlen("cue");
+  i=(int)strlen(psz_bin_name)-(int)strlen("cue");
 
   if (i>0) {
     if (psz_cue_name[i]=='c' && psz_cue_name[i+1]=='u' && psz_cue_name[i+2]=='e') {
@@ -1208,7 +1208,7 @@ cdio_is_binfile(const char *psz_bin_name)
   if (psz_bin_name == NULL) return NULL;
 
   psz_cue_name=strdup(psz_bin_name);
-  i=strlen(psz_bin_name)-strlen("bin");
+  i=(int)strlen(psz_bin_name)-(int)strlen("bin");
 
   if (i>0) {
     if (psz_bin_name[i]=='b' && psz_bin_name[i+1]=='i' && psz_bin_name[i+2]=='n') {

@@ -56,20 +56,14 @@
 #endif
 
 /* If available and LFS is enabled, try to use lseek64 */
-#if defined(HAVE_LSEEK64) && defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS == 64)
-#if defined(_MSC_VER)
 #include <io.h>
-#endif
-#define CDIO_LSEEK lseek64
-#else
 #define CDIO_LSEEK lseek
-#endif
 
 /*!
   Eject media -- there's nothing to do here. We always return -2.
   Should we also free resources?
  */
-int
+driver_return_code_t
 cdio_generic_unimplemented_eject_media (void *p_user_data) {
   /* Sort of a stub here. Perhaps log a message? */
   return DRIVER_OP_UNSUPPORTED;
@@ -78,7 +72,7 @@ cdio_generic_unimplemented_eject_media (void *p_user_data) {
 /*!
   Set the blocksize for subsequent reads.
 */
-int
+driver_return_code_t
 cdio_generic_unimplemented_set_blocksize (void *p_user_data,
                                           uint16_t i_blocksize) {
   /* Sort of a stub here. Perhaps log a message? */
@@ -88,7 +82,7 @@ cdio_generic_unimplemented_set_blocksize (void *p_user_data,
 /*!
   Set the drive speed.
 */
-int
+driver_return_code_t
 cdio_generic_unimplemented_set_speed (void *p_user_data, int i_speed) {
   /* Sort of a stub here. Perhaps log a message? */
   return DRIVER_OP_UNSUPPORTED;
@@ -182,7 +176,7 @@ ssize_t
 cdio_generic_read (void *user_data, void *buf, size_t size)
 {
   generic_img_private_t *p_env = user_data;
-  return read(p_env->fd, buf, size);
+  return read(p_env->fd, buf, (unsigned int)size);
 }
 
 /*!
@@ -511,7 +505,7 @@ driver_return_code_t
 read_data_sectors_generic (void *p_user_data, void *p_buf, lsn_t i_lsn,
                            uint16_t i_blocksize, uint32_t i_blocks)
 {
-  int rc;
+  ssize_t rc;
   if (0 > cdio_generic_lseek(p_user_data, i_blocksize*i_lsn, SEEK_SET))
     return DRIVER_OP_ERROR;
   rc = cdio_generic_read(p_user_data, p_buf, i_blocksize*i_blocks);

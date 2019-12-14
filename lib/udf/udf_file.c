@@ -132,7 +132,7 @@ offset_to_lba(const udf_dirent_t *p_udf_dirent, off_t i_offset,
     {
       off_t icblen = 0;
       uint64_t lsector;
-      int ad_offset, ad_num = 0;
+      uint32_t ad_offset, ad_num = 0;
       uint16_t addr_ilk = uint16_from_le(p_icb_tag->flags&ICBTAG_FLAG_AD_MASK);
       
       switch (addr_ilk) {
@@ -253,10 +253,10 @@ udf_read_block(const udf_dirent_t *p_udf_dirent, void * buf, size_t count)
 	  cdio_warn("read count truncated to %u", (unsigned int)count);
 	  count = i_max_blocks;
       }
-      ret = udf_read_sectors(p_udf, buf, i_lba, count);
+      ret = udf_read_sectors(p_udf, buf, i_lba, (long)count);
       if (DRIVER_OP_SUCCESS == ret) {
 	ssize_t i_read_len = MIN(i_max_size, count * UDF_BLOCKSIZE);
-	p_udf->i_position += i_read_len;
+	p_udf->i_position += (off_t)i_read_len;
 	return i_read_len;
       }
       return ret;

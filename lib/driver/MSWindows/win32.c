@@ -56,6 +56,7 @@
 #endif
 
 #ifdef HAVE_FCNTL_H
+#include <io.h>
 #include <fcntl.h>
 #endif
 
@@ -71,19 +72,9 @@
 #include <sys/types.h>
 #endif
 
-#if defined (_MSC_VER) || defined (_XBOX)
-#undef IN
-#else
 #include "aspi32.h"
-#endif
 
-#ifdef _XBOX
-#include "stdint.h"
-#include <xtl.h>
 #define WIN_NT 1
-#else
-#define WIN_NT               ( GetVersion() < 0x80000000 )
-#endif
 
 /* mingw-w64 defines this to lseek64 when LFS is enabled */
 #ifdef lseek
@@ -291,7 +282,7 @@ is_cdrom_win32(const char drive_letter) {
 
   Return 0 if command completed successfully.
  */
-static int
+static driver_return_code_t
 run_mmc_cmd_win32( void *p_user_data, unsigned int i_timeout_ms,
 		   unsigned int i_cdb, const mmc_cdb_t *p_cdb,
 		   cdio_mmc_direction_t e_direction,
@@ -382,7 +373,7 @@ free_win32 (void *p_user_data)
    Reads an audio device into data starting from lsn.
    Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 read_audio_sectors (void *p_user_data, void *p_buf, lsn_t i_lsn,
 		    unsigned int i_blocks)
 {
@@ -421,7 +412,7 @@ read_data_sectors_win32 (void *p_user_data, void *p_buf, lsn_t i_lsn,
    Reads a single mode1 sector from cd device into data starting from
    lsn. Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 read_mode1_sector_win32 (void *p_user_data, void *p_buf, lsn_t lsn,
 			 bool b_form2)
 {
@@ -453,12 +444,12 @@ read_mode1_sector_win32 (void *p_user_data, void *p_buf, lsn_t lsn,
    from lsn.
    Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 read_mode1_sectors_win32 (void *p_user_data, void *p_buf, lsn_t lsn,
 			  bool b_form2, unsigned int nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int i;
+  unsigned int i;
   int retval;
 
   for (i = 0; i < nblocks; i++) {
@@ -483,7 +474,7 @@ read_mode1_sectors_win32 (void *p_user_data, void *p_buf, lsn_t lsn,
    Reads a single mode2 sector from cd device into data starting
    from lsn. Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 read_mode2_sector_win32 (void *p_user_data, void *data, lsn_t lsn,
 			 bool b_form2)
 {
@@ -523,11 +514,11 @@ read_mode2_sector_win32 (void *p_user_data, void *data, lsn_t lsn,
    from lsn.
    Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 read_mode2_sectors_win32 (void *p_user_data, void *data, lsn_t lsn,
 			  bool b_form2, unsigned int i_blocks)
 {
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 
@@ -644,7 +635,7 @@ eject_media_win32 (void *p_user_data)
 {
   const _img_private_t *p_env = p_user_data;
   char psz_drive[4];
-  unsigned int i_device = strlen(p_env->gen.source_name);
+  size_t i_device = strlen(p_env->gen.source_name);
 
   strcpy( psz_drive, "X:" );
   if (6 == i_device) {
@@ -904,7 +895,7 @@ bool
 cdio_is_device_win32(const char *source_name)
 {
 #ifdef HAVE_WIN32_CDROM
-  unsigned int len;
+  size_t len;
 
   if (NULL == source_name) return false;
   len = strlen(source_name);

@@ -139,7 +139,7 @@ _cdio_read_block(const CdIo_t *p_cdio, int superblock, uint32_t offset,
   unsigned int track_sec_count = cdio_get_track_sec_count(p_cdio, i_track);
   memset(buffer[bufnum], 0, CDIO_CD_FRAMESIZE);
 
-  if ( track_sec_count < superblock) {
+  if ( (int)track_sec_count < superblock) {
     cdio_debug("reading block %u skipped track %d has only %u sectors\n",
 	       superblock, i_track, track_sec_count);
     return DRIVER_OP_ERROR;
@@ -160,7 +160,7 @@ static bool
 _cdio_is_it(int num)
 {
   const signature_t *sigp=&sigs[num];
-  int len=strlen(sigp->sig_str);
+  size_t len=strlen(sigp->sig_str);
 
   /* TODO: check that num < largest sig. */
   return 0 == memcmp(&buffer[sigp->buf_num][sigp->offset], sigp->sig_str, len);

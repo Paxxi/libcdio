@@ -108,7 +108,7 @@ _register_mapping (_img_private_t *env, lsn_t start_lsn, uint32_t sec_count,
   this_track->track_num = track_num+1;
   this_track->blocksize = blocksize;
   if (env->is_cues)
-    this_track->datastart = img_offset;
+    this_track->datastart = (uint16_t)img_offset;
   else
     this_track->datastart = 0;
 
@@ -201,7 +201,7 @@ parse_nrg (_img_private_t *p_env, const char *psz_nrg_name,
       footer_start = uint32_to_be (buf.v50.footer_ofs);
     } else if (buf.v55.ID == UINT32_TO_BE (NER5_ID)) {
       cdio_debug ("detected Nero version 5.5.x (64-bit offsets) NRG magic");
-      footer_start = uint64_from_be (buf.v55.footer_ofs);
+      footer_start = (off_t)uint64_from_be (buf.v55.footer_ofs);
     } else {
       cdio_log (log_level, "Image not recognized as either version 5.0 or "
 		"version 5.5.x-6.x type NRG");
@@ -492,7 +492,7 @@ parse_nrg (_img_private_t *p_env, const char *psz_nrg_name,
 	      continue;
 	    }
 	    if (DAOX_ID == opcode) {
-	       p_env->tocent[i].pregap = (uint64_from_be
+	       p_env->tocent[i].pregap = (lba_t)(uint64_from_be
 		(_xentries->track_info[i].index0)) / (p_env->tocent[i].datasize);
 	    } else {
 	       p_env->tocent[i].pregap = (uint32_from_be
@@ -529,7 +529,7 @@ parse_nrg (_img_private_t *p_env, const char *psz_nrg_name,
 	cdio_debug ("SAO type image (ETNF) detected");
 
 	{
-	  int idx;
+	  unsigned int idx;
 	  for (idx = 0; idx < entries; idx++) {
 	    uint32_t _len = UINT32_FROM_BE (_entries[idx].length);
 	    uint32_t _start = UINT32_FROM_BE (_entries[idx].start_lsn);
@@ -623,11 +623,11 @@ parse_nrg (_img_private_t *p_env, const char *psz_nrg_name,
 	cdio_debug ("SAO type image (ETN2) detected");
 
 	{
-	  int idx;
+	  unsigned int idx;
 	  for (idx = 0; idx < entries; idx++) {
-	    uint32_t _len = uint64_from_be (_entries[idx].length);
+	    uint32_t _len = (uint32_t) uint64_from_be (_entries[idx].length);
 	    uint32_t _start = uint32_from_be (_entries[idx].start_lsn);
-	    uint32_t _start2 = uint64_from_be (_entries[idx].start);
+	    uint32_t _start2 = (uint32_t) uint64_from_be (_entries[idx].start);
 	    uint32_t track_mode= uint32_from_be (_entries[idx].type);
 	    bool     track_green = true;
 	    track_format_t track_format = TRACK_FORMAT_XA;
@@ -906,7 +906,7 @@ _read_audio_sectors_nrg (void *p_user_data, void *data, lsn_t lsn,
   _img_private_t *p_env = p_user_data;
   CdioListNode_t *node;
 
-  if (lsn >= p_env->size)
+  if ((uint32_t)lsn >= p_env->size)
     {
       cdio_warn ("trying to read beyond image size (%lu >= %lu)",
 		 (long unsigned int) lsn, (long unsigned int) p_env->size);
@@ -914,7 +914,7 @@ _read_audio_sectors_nrg (void *p_user_data, void *data, lsn_t lsn,
     }
 
   if (p_env->is_dao) {
-    int ret;
+    ssize_t ret;
 
     ret = cdio_stream_seek (p_env->gen.data_source,
               (lsn + CDIO_PREGAP_SECTORS) * CDIO_CD_FRAMESIZE_RAW, SEEK_SET);
@@ -930,9 +930,9 @@ _read_audio_sectors_nrg (void *p_user_data, void *data, lsn_t lsn,
   _CDIO_LIST_FOREACH (node, p_env->mapping) {
     _mapping_t *_map = _cdio_list_node_data (node);
 
-    if (IN (lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
-      int ret;
-      long int img_offset = _map->img_offset;
+    if (BETWEEN ((uint32_t)lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
+      ssize_t ret;
+      long int img_offset = (long int)_map->img_offset;
 
       img_offset += (lsn - _map->start_lsn) * CDIO_CD_FRAMESIZE_RAW;
 
@@ -961,7 +961,7 @@ _read_mode1_sector_nrg (void *p_user_data, void *data, lsn_t lsn,
 
   CdioListNode_t *node;
 
-  if (lsn >= p_env->size)
+  if ((uint32_t)lsn >= p_env->size)
     {
       cdio_warn ("trying to read beyond image size (%lu >= %lu)",
 		 (long unsigned int) lsn, (long unsigned int) p_env->size);
@@ -971,9 +971,9 @@ _read_mode1_sector_nrg (void *p_user_data, void *data, lsn_t lsn,
   _CDIO_LIST_FOREACH (node, p_env->mapping) {
     _mapping_t *_map = _cdio_list_node_data (node);
 
-    if (IN (lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
-      int ret;
-      long int img_offset = _map->img_offset;
+    if (BETWEEN ((uint32_t)lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
+      ssize_t ret;
+      long int img_offset = (long int)_map->img_offset;
 
       img_offset += (lsn - _map->start_lsn) * _map->blocksize;
 
@@ -1010,7 +1010,7 @@ _read_mode1_sectors_nrg (void *p_user_data, void *data, lsn_t lsn,
 			 bool b_form2, unsigned nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 
@@ -1032,7 +1032,7 @@ _read_mode2_sector_nrg (void *p_user_data, void *data, lsn_t lsn,
 
   CdioListNode_t *node;
 
-  if (lsn >= p_env->size)
+  if ((uint32_t)lsn >= p_env->size)
     {
       cdio_warn ("trying to read beyond image size (%lu >= %lu)",
 		 (long unsigned int) lsn, (long unsigned int) p_env->size);
@@ -1042,9 +1042,9 @@ _read_mode2_sector_nrg (void *p_user_data, void *data, lsn_t lsn,
   _CDIO_LIST_FOREACH (node, p_env->mapping) {
     _mapping_t *_map = _cdio_list_node_data (node);
 
-    if (IN (lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
-      int ret;
-      long int img_offset = _map->img_offset;
+    if (BETWEEN ((uint32_t)lsn, _map->start_lsn, (_map->start_lsn + _map->sec_count - 1))) {
+      ssize_t ret;
+      long int img_offset = (long int)_map->img_offset;
 
       img_offset += (lsn - _map->start_lsn) * _map->blocksize;
 
@@ -1083,7 +1083,7 @@ _read_mode2_sectors_nrg (void *p_user_data, void *data, lsn_t lsn,
 			 bool b_form2, unsigned nblocks)
 {
   _img_private_t *p_env = p_user_data;
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 

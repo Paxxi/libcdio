@@ -208,7 +208,7 @@ static ssize_t
 _stdio_read(void *user_data, void *buf, size_t count)
 {
   _UserData *const ud = user_data;
-  long read_count;
+  size_t read_count;
 
   read_count = fread(buf, 1, count, ud->fd);
 

@@ -370,7 +370,7 @@ extern "C" {
       Reads a single mode2 sector from cd device into buf starting
       from lsn. Returns 0 if no error.
     */
-    int (*read_audio_sectors) ( void *p_env, void *p_buf, lsn_t i_lsn,
+    driver_return_code_t (*read_audio_sectors) ( void *p_env, void *p_buf, lsn_t i_lsn,
                                 unsigned int i_blocks );
 
     /*!
@@ -398,7 +398,7 @@ extern "C" {
       Reads a single mode2 sector from cd device into buf starting
       from lsn. Returns 0 if no error.
     */
-    int (*read_mode2_sector)
+    driver_return_code_t (*read_mode2_sector)
          ( void *p_env, void *p_buf, lsn_t i_lsn, bool b_mode2_form2 );
 
     /*!
@@ -406,7 +406,7 @@ extern "C" {
       from lsn.
       Returns 0 if no error.
     */
-    int (*read_mode2_sectors)
+    driver_return_code_t (*read_mode2_sectors)
          ( void *p_env, void *p_buf, lsn_t i_lsn, bool b_mode2_form2,
            unsigned int i_blocks );
 
@@ -414,7 +414,7 @@ extern "C" {
       Reads a single mode1 sector from cd device into buf starting
       from lsn. Returns 0 if no error.
     */
-    int (*read_mode1_sector)
+    driver_return_code_t (*read_mode1_sector)
          ( void *p_env, void *p_buf, lsn_t i_lsn, bool mode1_form2 );
 
     /*!
@@ -422,7 +422,7 @@ extern "C" {
       from lsn.
       Returns 0 if no error.
     */
-    int (*read_mode1_sectors)
+    driver_return_code_t (*read_mode1_sectors)
          ( void *p_env, void *p_buf, lsn_t i_lsn, bool mode1_form2,
            unsigned int i_blocks );
 
@@ -463,7 +463,7 @@ extern "C" {
       @return 0 if everything went okay, -1 if we had an error. is -2
       returned if this is not implemented for the current driver.
     */
-    int (*set_speed) ( void *p_env, int i_speed );
+    driver_return_code_t (*set_speed) ( void *p_env, int i_speed );
 
   } cdio_funcs_t;
 
@@ -526,14 +526,17 @@ extern "C" {
   void cdio_add_device_list(char **device_list[], const char *psz_drive,
                             unsigned int *i_drives);
 
+#ifndef _WIN32
   driver_return_code_t close_tray_bsdi    (const char *psz_drive);
   driver_return_code_t close_tray_freebsd (const char *psz_drive);
   driver_return_code_t close_tray_linux   (const char *psz_drive);
   driver_return_code_t close_tray_netbsd  (const char *psz_drive);
   driver_return_code_t close_tray_osx     (const char *psz_drive);
   driver_return_code_t close_tray_solaris (const char *psz_drive);
+#endif
   driver_return_code_t close_tray_win32   (const char *psz_drive);
 
+#ifndef _WIN32
   bool cdio_have_netbsd(void);
   CdIo_t * cdio_open_netbsd (const char *psz_source);
   char * cdio_get_default_device_netbsd(void);
@@ -575,6 +578,7 @@ extern "C" {
   /*! DEPRICATED: use cdio_have_driver().
     True if Apple OSX driver is available. */
   bool cdio_have_osx     (void);
+#endif
 
   /*! DEPRICATED: use cdio_have_driver().
     True if Microsoft Windows driver is available. */

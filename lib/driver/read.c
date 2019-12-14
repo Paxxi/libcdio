@@ -67,7 +67,7 @@
     }                                                                    \
     /* Care is used in the expression below to be correct with */        \
     /* respect to unsigned integers.                           */        \
-    if ( i_lsn + i_blocks > end_lsn + 1 ) {                              \
+    if ( i_lsn + i_blocks > ((uint32_t)end_lsn + 1) ) {                              \
       cdio_info("Request truncated to end disk; lsn: %ld, end lsn: %ld", \
                 (long int) i_lsn, (long int) end_lsn);                   \
       i_blocks = end_lsn - i_lsn + 1;                                    \

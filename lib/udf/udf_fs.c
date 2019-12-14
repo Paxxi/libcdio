@@ -335,7 +335,7 @@ udf_read_sectors (const udf_t *p_udf, void *ptr, lsn_t i_start,
 		 long i_blocks)
 {
   driver_return_code_t ret;
-  long i_read;
+  ssize_t i_read;
   off_t i_byte_offset;
 
   if (!p_udf) return 0;
@@ -453,7 +453,7 @@ udf_get_volume_id(udf_t *p_udf, /*out*/ char *psz_volid, unsigned int i_volid)
   uint8_t data[UDF_BLOCKSIZE];
   const udf_pvd_t *p_pvd = (udf_pvd_t *) &data;
   char* r;
-  unsigned int volid_len;
+  size_t volid_len;
 
   /* clear the output to empty string */
   if (psz_volid != NULL)
@@ -469,7 +469,7 @@ udf_get_volume_id(udf_t *p_udf, /*out*/ char *psz_volid, unsigned int i_volid)
     volid_len = UDF_VOLID_SIZE-1;
   }
 
-  r = unicode16_decode((uint8_t *) p_pvd->vol_ident, volid_len);
+  r = unicode16_decode((uint8_t *) p_pvd->vol_ident, (int)volid_len);
   if (r == NULL)
     return 0;
 
@@ -480,7 +480,7 @@ udf_get_volume_id(udf_t *p_udf, /*out*/ char *psz_volid, unsigned int i_volid)
   }
   free(r);
 
-  return volid_len;
+  return (int)volid_len;
 }
 
 /**
@@ -526,7 +526,7 @@ udf_get_logical_volume_id(udf_t *p_udf, /*out*/ char *psz_logvolid, unsigned int
   uint8_t data[UDF_BLOCKSIZE];
   logical_vol_desc_t *p_logvol = (logical_vol_desc_t *) &data;
   char* r;
-  int logvolid_len;
+  size_t logvolid_len;
 
   /* clear the output to empty string */
   if (psz_logvolid != NULL)
@@ -546,7 +546,7 @@ udf_get_logical_volume_id(udf_t *p_udf, /*out*/ char *psz_logvolid, unsigned int
   }
   free(r);
 
-  return logvolid_len;
+  return (int)logvolid_len;
 }
 
 /*!

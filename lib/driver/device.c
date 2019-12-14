@@ -109,7 +109,7 @@ CdIo_driver_t CdIo_all_drivers[] = {
    NULL,
    NULL
   },
-
+#ifndef _WIN32
   {DRIVER_AIX,
    CDIO_SRC_IS_DEVICE_MASK|CDIO_SRC_IS_NATIVE_MASK|CDIO_SRC_IS_SCSI_MASK,
    "AIX",
@@ -187,6 +187,7 @@ CdIo_driver_t CdIo_all_drivers[] = {
    &cdio_get_devices_osx,
    &close_tray_osx
   },
+#endif
 
   {DRIVER_WIN32,
    CDIO_SRC_IS_DEVICE_MASK|CDIO_SRC_IS_NATIVE_MASK|CDIO_SRC_IS_SCSI_MASK,

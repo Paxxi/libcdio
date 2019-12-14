@@ -83,10 +83,10 @@
                         error_msg, sizeof(error_msg), NULL);             \
   (count != 0) ?                                                         \
     cdio_log(loglevel, "Error: file %s: line %d (%s)\n\t%s\n",           \
-             __FILE__, __LINE__, __PRETTY_FUNCTION__, error_msg)         \
+             __FILE__, __LINE__, __FUNCTION__, error_msg)         \
     :                                                                    \
     cdio_log(loglevel, "Error: file %s: line %d (%s) %ld\n",             \
-             __FILE__, __LINE__, __PRETTY_FUNCTION__, (long int) i_err); \
+             __FILE__, __LINE__, __FUNCTION__, (long int) i_err); \
 }
 #endif
 
@@ -363,18 +363,10 @@ close_tray_win32ioctl (const char *psz_win32_drive)
   DWORD dw_bytes_returned;
   DWORD dw_access_flags;
 
-  OSVERSIONINFO ov;
   HANDLE h_device_handle;
   BOOL   b_success;
 
-  memset(&ov,0,sizeof(OSVERSIONINFO));
-  ov.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-  GetVersionEx(&ov);
-
-  if((ov.dwPlatformId==VER_PLATFORM_WIN32_NT) &&
-     (ov.dwMajorVersion>4))
-    dw_access_flags = GENERIC_READ|GENERIC_WRITE;  /* add gen write on W2k/XP */
-  else dw_access_flags = GENERIC_READ;
+  dw_access_flags = GENERIC_READ|GENERIC_WRITE;  /* add gen write on W2k/XP */
 
   h_device_handle = CreateFile( psz_win32_drive,
                                 dw_access_flags,
@@ -567,7 +559,7 @@ run_mmc_cmd_win32ioctl( void *p_user_data,
   return rc;
 }
 #else
-int
+driver_return_code_t
 run_mmc_cmd_win32ioctl( void *p_user_data,
                         unsigned int u_timeout_ms,
                         unsigned int u_cdb, const mmc_cdb_t * p_cdb,
@@ -904,10 +896,6 @@ read_mode1_sector_win32ioctl (_img_private_t *env, void *data,
 bool
 init_win32ioctl (_img_private_t *env)
 {
-#ifdef WIN32
-  OSVERSIONINFO ov;
-#endif
-
 #ifdef _XBOX
   ANSI_STRING filename;
   OBJECT_ATTRIBUTES attributes;
@@ -915,7 +903,7 @@ init_win32ioctl (_img_private_t *env)
   HANDLE hDevice;
   NTSTATUS error;
 #else
-  unsigned int len=strlen(env->gen.source_name);
+  size_t len=strlen(env->gen.source_name);
   char psz_win32_drive[7];
   DWORD dw_access_flags;
 #endif
@@ -923,14 +911,7 @@ init_win32ioctl (_img_private_t *env)
   cdio_debug("using winNT/2K/XP ioctl layer");
 
 #ifdef WIN32
-  memset(&ov,0,sizeof(OSVERSIONINFO));
-  ov.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-  GetVersionEx(&ov);
-
-  if((ov.dwPlatformId==VER_PLATFORM_WIN32_NT) &&
-     (ov.dwMajorVersion>4))
     dw_access_flags = GENERIC_READ|GENERIC_WRITE;  /* add gen write on W2k/XP */
-  else dw_access_flags = GENERIC_READ;
 #endif
 
   if (cdio_is_device_win32(env->gen.source_name))

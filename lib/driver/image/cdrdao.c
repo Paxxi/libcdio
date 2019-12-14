@@ -1014,7 +1014,7 @@ _read_audio_sectors_cdrdao (void *user_data, void *data, lsn_t lsn,
 			  unsigned int nblocks)
 {
   _img_private_t *env = user_data;
-  int ret;
+  ssize_t ret;
 
   ret = cdio_stream_seek (env->tocent[0].data_source,
             lsn * CDIO_CD_FRAMESIZE_RAW, SEEK_SET);
@@ -1036,7 +1036,7 @@ _read_mode1_sector_cdrdao (void *user_data, void *data, lsn_t lsn,
 			 bool b_form2)
 {
   _img_private_t *env = user_data;
-  int ret;
+  ssize_t ret;
   char buf[CDIO_CD_FRAMESIZE_RAW] = { 0, };
 
   ret = cdio_stream_seek (env->tocent[0].data_source,
@@ -1059,12 +1059,12 @@ _read_mode1_sector_cdrdao (void *user_data, void *data, lsn_t lsn,
    from lsn.
    Returns 0 if no error.
  */
-static int
+static driver_return_code_t
 _read_mode1_sectors_cdrdao (void *user_data, void *data, lsn_t lsn,
 			    bool b_form2, unsigned int nblocks)
 {
   _img_private_t *env = user_data;
-  int i;
+  unsigned int i;
   int retval;
   unsigned int blocksize = b_form2 ? M2RAW_SECTOR_SIZE : CDIO_CD_FRAMESIZE;
 
@@ -1086,7 +1086,7 @@ _read_mode2_sector_cdrdao (void *user_data, void *data, lsn_t lsn,
 			 bool b_form2)
 {
   _img_private_t *env = user_data;
-  int ret;
+  ssize_t ret;
   char buf[CDIO_CD_FRAMESIZE_RAW] = { 0, };
   long unsigned int i_off = lsn * CDIO_CD_FRAMESIZE_RAW;
 
@@ -1129,7 +1129,7 @@ _read_mode2_sectors_cdrdao (void *user_data, void *data, lsn_t lsn,
 			    bool b_form2, unsigned int nblocks)
 {
   _img_private_t *env = user_data;
-  int i;
+  unsigned int i;
   int retval;
 
   for (i = 0; i < nblocks; i++) {
@@ -1263,7 +1263,7 @@ cdio_is_tocfile(const char *psz_cue_name)
 
   if (psz_cue_name == NULL) return false;
 
-  i=strlen(psz_cue_name)-strlen("toc");
+  i=(int)strlen(psz_cue_name)-(int)strlen("toc");
 
   if (i>0) {
     if ( (psz_cue_name[i]=='t' && psz_cue_name[i+1]=='o' && psz_cue_name[i+2]=='c')

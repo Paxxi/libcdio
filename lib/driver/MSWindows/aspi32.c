@@ -41,7 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <unistd.h>
 #include <fcntl.h>
 
 #include <windows.h>
@@ -486,7 +485,7 @@ init_aspi (_img_private_t *env)
 
   We return 0 if command completed successfully.
  */
-int
+driver_return_code_t
 run_mmc_cmd_aspi( void *p_user_data, unsigned int i_timeout_ms,
                   unsigned int i_cdb, const mmc_cdb_t * p_cdb,
                   cdio_mmc_direction_t e_direction,
@@ -514,7 +513,7 @@ run_mmc_cmd_aspi( void *p_user_data, unsigned int i_timeout_ms,
 
   ssc.SRB_HaId        = LOBYTE( p_env->i_sid );
   ssc.SRB_Target      = HIBYTE( p_env->i_sid );
-  ssc.SRB_Lun         = p_env->i_lun;
+  ssc.SRB_Lun         = (unsigned char)p_env->i_lun;
   ssc.SRB_SenseLen    = SENSE_LEN;
 
   ssc.SRB_PostProc = (LPVOID) hEvent;
