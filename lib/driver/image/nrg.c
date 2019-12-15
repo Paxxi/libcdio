@@ -1127,6 +1127,10 @@ _eject_media_nrg(void *obj)
 #if !defined(HAVE_GLOB_H) && defined(_WIN32)
 static void Win32Glob(const char* pattern, const char* szCurPath, char ***drives, unsigned int *num_files)
 {
+#ifdef MS_APP
+  *drives = NULL;
+  *num_files = 0;
+#else
   char szPath[MAX_PATH];
   WIN32_FIND_DATAA ffd;
   HANDLE hFind;
@@ -1156,6 +1160,7 @@ static void Win32Glob(const char* pattern, const char* szCurPath, char ***drives
   }
   if (hFind != INVALID_HANDLE_VALUE)
     FindClose(hFind);
+#endif
 }
 #endif
 
@@ -1177,9 +1182,11 @@ cdio_get_devices_nrg (void)
   }
   globfree(&globbuf);
 #elif defined(_WIN32)
+#ifndef MS_APP
   char szStartDir[MAX_PATH];
   GetCurrentDirectoryA(sizeof(szStartDir), szStartDir);
   Win32Glob("*.nrg", szStartDir, &drives, &num_files);
+#endif
 #else
   cdio_add_device_list(&drives, DEFAULT_CDIO_DEVICE, &num_files);
 #endif /*HAVE_GLOB_H*/
