@@ -108,3 +108,9 @@ EXPORTS
   cdio_get_track_msf
   cdio_get_track_preemphasis
   cdio_get_track_sec_count
+  cdio_msf_to_lsn
+  cdio_guess_cd_type
+  cdio_log_set_handler
+  cdio_debug
+  mmc_get_tray_status
+  cdio_from_bcd8

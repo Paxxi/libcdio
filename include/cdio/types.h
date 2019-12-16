@@ -54,7 +54,7 @@ typedef uint8_t ubyte;
    to compensate for missing UNIX types is to include a custom
    unistd.h that defines them. Such a file is provided with
    the libcdio source, in the MSVC/missing directory */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(TARGET_WINDOWS)
 typedef int64_t ssize_t;
 typedef int32_t mode_t;
 #endif
