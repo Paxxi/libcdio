@@ -151,12 +151,14 @@ extern "C" {
   typedef enum  {
     DRIVER_UNKNOWN, /**< Used as input when we don't care what kind
                          of driver to use. */
+#ifndef _WIN32
     DRIVER_AIX,     /**< AIX driver */
     DRIVER_FREEBSD, /**< FreeBSD driver - includes CAM and ioctl access */
     DRIVER_NETBSD,  /**< NetBSD Driver. */
     DRIVER_LINUX,   /**< GNU/Linux Driver */
     DRIVER_SOLARIS, /**< Sun Solaris Driver */
     DRIVER_OSX,     /**< Apple OSX (or MacOS) Driver */
+#endif
     DRIVER_WIN32,   /**< Microsoft Windows Driver. Includes ASPI and
                          ioctl access. */
     DRIVER_CDRDAO,  /**< cdrdao format CD image. This is listed
